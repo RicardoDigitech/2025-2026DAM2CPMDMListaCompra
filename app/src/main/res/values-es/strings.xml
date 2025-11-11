@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Ajustes</string>
+    <string name="crear_alert_titulo">Crear nuevo producto</string>
+    <string name="modificar_alert_titulo">Modificar producto</string>
+    <string name="alert_cancelar">Cancelar</string>
+    <string name="crear_alert_crear">Crear</string>
+    <string name="modificar_alert_modificar">Modificar</string>
+</resources>

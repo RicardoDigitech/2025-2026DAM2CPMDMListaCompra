@@ -5,14 +5,18 @@ import android.os.Bundle;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import ricardosornosa.a2025_2026dam2cpmdmlistacompra.adapters.ProductoAdapter;
 import ricardosornosa.a2025_2026dam2cpmdmlistacompra.databinding.ActivityMainBinding;
 import ricardosornosa.a2025_2026dam2cpmdmlistacompra.models.ProductoModel;
 
@@ -30,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private ArrayList<ProductoModel> productoList;
+    private ProductoAdapter adapter;
+    private RecyclerView.LayoutManager lm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,13 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
 
         productoList = new ArrayList<>();
+        adapter = new ProductoAdapter(
+                productoList, R.layout.producto_view_model, this
+        );
+        lm = new LinearLayoutManager(this);
+
+        binding.contentMain.contenedorMain.setAdapter(adapter);
+        binding.contentMain.contenedorMain.setLayoutManager(lm);
 
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AlertDialog crearProducto() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Agregar producto a la cesta");
+        builder.setTitle(R.string.crear_alert_titulo);
         builder.setCancelable(false);
 
         View productoViewAlert = LayoutInflater.from(this)
@@ -102,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
         txtCantidad.addTextChangedListener(tw);
         txtImporte.addTextChangedListener(tw);
 
-        builder.setNegativeButton("CANCELAR", null);
-        builder.setPositiveButton("AGREGAR", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.alert_cancelar, null);
+        builder.setPositiveButton(R.string.crear_alert_crear, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String nombre = txtNombre.getText().toString();
@@ -118,11 +131,28 @@ public class MainActivity extends AppCompatActivity {
                     ProductoModel p = new ProductoModel(
                             nombre, cantidad, importe
                     );
-                    productoList.add(p);
+                    productoList.add(0, p);
+                    adapter.notifyItemInserted(0);
                 }
             }
         });
 
         return builder.create();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(getString(R.string.id_list), productoList);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<ProductoModel> listaRecuperada =
+                (ArrayList<ProductoModel>)
+                        savedInstanceState.getSerializable(getString(R.string.id_list));
+        productoList.addAll(listaRecuperada);
+        adapter.notifyItemRangeInserted(0, productoList.size());
     }
 }
