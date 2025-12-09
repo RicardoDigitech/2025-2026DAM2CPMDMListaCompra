@@ -1,9 +1,12 @@
 package ricardosornosa.a2025_2026dam2cpmdmlistacompra;
 
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -27,6 +30,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Type;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
@@ -37,12 +41,18 @@ public class MainActivity extends AppCompatActivity {
     private ProductoAdapter adapter;
     private RecyclerView.LayoutManager lm;
 
+    private SharedPreferences sp;
+    private Gson gson;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.toolbar);
+
+        sp = getSharedPreferences(Constantes.DATOS, MODE_PRIVATE);
+        gson = new Gson();
 
         productoList = new ArrayList<>();
         adapter = new ProductoAdapter(
@@ -53,12 +63,27 @@ public class MainActivity extends AppCompatActivity {
         binding.contentMain.contenedorMain.setAdapter(adapter);
         binding.contentMain.contenedorMain.setLayoutManager(lm);
 
+        leerDatos();
+
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 crearProducto().show();
             }
         });
+    }
+
+    private void leerDatos() {
+        if (sp.contains(Constantes.LISTA_PRODUCTOS)) {
+            String productosJson = sp.getString(Constantes.LISTA_PRODUCTOS,
+                    "[]");
+            Type tipo = new TypeToken<ArrayList<ProductoModel>>() {
+            }.getType();
+            ArrayList<ProductoModel> temp = gson.fromJson(productosJson, tipo);
+            productoList.clear();
+            productoList.addAll(temp);
+            adapter.notifyItemRangeInserted(0, productoList.size());
+        }
     }
 
     private AlertDialog crearProducto() {
@@ -133,11 +158,20 @@ public class MainActivity extends AppCompatActivity {
                     );
                     productoList.add(0, p);
                     adapter.notifyItemInserted(0);
+
+                    guardarInformacion();
                 }
             }
         });
 
         return builder.create();
+    }
+
+    private void guardarInformacion() {
+        String productosJson = gson.toJson(productoList);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(Constantes.LISTA_PRODUCTOS, productosJson);
+        editor.apply();
     }
 
     @Override

@@ -2,6 +2,7 @@ package ricardosornosa.a2025_2026dam2cpmdmlistacompra.adapters;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,9 +17,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+
 import java.text.NumberFormat;
 import java.util.List;
 
+import ricardosornosa.a2025_2026dam2cpmdmlistacompra.Constantes;
 import ricardosornosa.a2025_2026dam2cpmdmlistacompra.MainActivity;
 import ricardosornosa.a2025_2026dam2cpmdmlistacompra.R;
 import ricardosornosa.a2025_2026dam2cpmdmlistacompra.models.ProductoModel;
@@ -28,10 +32,24 @@ public class ProductoAdapter extends RecyclerView.Adapter<ProductoAdapter.Produc
     private int resource;
     private Context context;
 
+    private SharedPreferences sp;
+    private Gson gson;
+
     public ProductoAdapter(List<ProductoModel> objects, int resource, Context context) {
         this.objects = objects;
         this.resource = resource;
         this.context = context;
+
+        this.sp = context.getSharedPreferences(Constantes.DATOS,
+                context.MODE_PRIVATE);
+        this.gson = new Gson();
+    }
+
+    private void guardarInformacion() {
+        String productosJson = gson.toJson(objects);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString(Constantes.LISTA_PRODUCTOS, productosJson);
+        editor.apply();
     }
 
     @NonNull
@@ -169,6 +187,8 @@ public class ProductoAdapter extends RecyclerView.Adapter<ProductoAdapter.Produc
                     p.actualizarTotal();
 
                     notifyItemChanged(objects.indexOf(p));
+
+                    guardarInformacion();
                 }
             }
         });
@@ -187,6 +207,8 @@ public class ProductoAdapter extends RecyclerView.Adapter<ProductoAdapter.Produc
             public void onClick(DialogInterface dialog, int which) {
                 objects.remove(posicion);
                 notifyItemRemoved(posicion);
+
+                guardarInformacion();
             }
         });
 
